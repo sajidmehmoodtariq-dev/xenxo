@@ -1,0 +1,100 @@
+import clientPromise from '@/lib/mongodb'
+import { getToken } from 'next-auth/jwt'
+
+export default async function handler(req, res) {
+  const client = await clientPromise
+  const db = client.db()
+  const { id } = req.query
+  const rooms = db.collection('rooms')
+  const games = db.collection('games')
+
+  if (req.method === 'GET') {
+    const room = await rooms.findOne({ roomId: id })
+    if (!room) return res.status(404).json({ error: 'not found' })
+    return res.status(200).json(room)
+  }
+
+  if (req.method === 'POST') {
+  const { action, user, move, winner } = req.body || {}
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return res.status(401).json({ error: 'authentication required' })
+  const room = await rooms.findOne({ roomId: id })
+    if (!room) return res.status(404).json({ error: 'not found' })
+
+    if (action === 'join') {
+      // use token identity as canonical user id
+      const userId = token.email || token.sub || token.name
+      const userName = token.name || 'Player'
+
+      // if already present, return players
+      if ((room.players || []).find(p => p.id === userId)) {
+        return res.status(200).json({ ok: true, players: room.players })
+      }
+
+      // Try to atomically add as X if room empty
+      let updated = await rooms.findOneAndUpdate(
+        { roomId: id, $expr: { $eq: [{ $size: '$players' }, 0] } },
+        { $push: { players: { id: userId, name: userName, symbol: 'X' } } },
+        { returnDocument: 'after' }
+      )
+
+      if (!updated.value) {
+        // if not added, try to atomically add as O if there's exactly one player
+        updated = await rooms.findOneAndUpdate(
+          { roomId: id, $expr: { $eq: [{ $size: '$players' }, 1] } },
+          { $push: { players: { id: userId, name: userName, symbol: 'O' } } },
+          { returnDocument: 'after' }
+        )
+      }
+
+      // fallback: if still not updated, reload room
+      const finalRoom = updated.value || await rooms.findOne({ roomId: id })
+      return res.status(200).json({ ok: true, players: finalRoom.players })
+    }
+
+    if (action === 'move') {
+      // move: { row, col }
+      const { row, col } = move || {}
+      const userId = token.email || token.sub || token.name
+      // find player's assigned symbol
+      const playerEntry = (room.players || []).find(p => p.id === userId)
+      if (!playerEntry) return res.status(403).json({ error: 'not part of this room' })
+      const player = playerEntry.symbol
+
+      // enforce turn
+      const current = room.currentTurn || 'X'
+      if (player !== current) return res.status(400).json({ error: 'not your turn' })
+      // ensure cell empty
+      if (room.board[row][col]) return res.status(400).json({ error: 'cell occupied' })
+      room.board[row][col] = player
+      room.moves = room.moves || []
+      room.moves.push({ row, col, player })
+      // switch turn
+      room.currentTurn = current === 'X' ? 'O' : 'X'
+      await rooms.updateOne({ roomId: id }, { $set: { board: room.board, moves: room.moves, currentTurn: room.currentTurn } })
+      return res.status(200).json({ ok: true, board: room.board, currentTurn: room.currentTurn })
+    }
+
+    if (action === 'end') {
+      // allow only participants to end
+      const userId = token.email || token.sub || token.name
+      if (!room.players.find(p => p.id === userId)) return res.status(403).json({ error: 'not part of this room' })
+      // persist game
+      const doc = { roomId: id, players: room.players, moves: room.moves || [], winner, createdAt: new Date() }
+      await games.insertOne(doc)
+      // reset room board
+      await rooms.updateOne({ roomId: id }, { $set: { board: [["","",""],["","",""],["","",""]], moves: [], currentTurn: 'X' } })
+      return res.status(200).json({ ok: true })
+    }
+
+    if (action === 'delete') {
+      // only creator can delete
+      const userId = token.email || token.sub || token.name
+      if (!room.creator || room.creator.id !== userId) return res.status(403).json({ error: 'only creator can delete' })
+      await rooms.deleteOne({ roomId: id })
+      return res.status(200).json({ ok: true })
+    }
+  }
+
+  res.status(405).end()
+}

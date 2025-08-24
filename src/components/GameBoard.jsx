@@ -5,7 +5,7 @@ import { checkWinner, checkDraw } from '@/lib/game.js'
 import { bestMove } from '@/lib/ai'
 import Score from './Score'
 
-const GameBoard = ({ mode='local', storageKey='xenxo_score_history_v1' }) => {
+const GameBoard = ({ mode='local', storageKey='xenxo_score_history_v1', disabled=false, externalBoard=null, externalCurrentTurn=null, mySymbol='X', onLocalMove=()=>{}, onGameEnd=()=>{} }) => {
   const empty = () => [["","",""],["","",""],["","",""]];
   const [board, setBoard] = useState(empty());
   const [currentPlayer, setCurrentPlayer] = useState('X');
@@ -32,25 +32,56 @@ const GameBoard = ({ mode='local', storageKey='xenxo_score_history_v1' }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPlayer, mode, winner, draw, board]);
 
+  // sync external board (multiplayer)
+  useEffect(() => {
+    if (externalBoard) {
+      setBoard(externalBoard);
+      const w = checkWinner(externalBoard);
+      if (w) { setWinner(w); if (mode !== 'multiplayer') commitResult(w); onGameEnd({ result: w, board: externalBoard }); }
+      else if (checkDraw(externalBoard)) { setDraw(true); if (mode !== 'multiplayer') commitResult('draw'); onGameEnd({ result: 'draw', board: externalBoard }); }
+      else { setWinner(''); setDraw(false); }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalBoard]);
+
+  useEffect(() => {
+    // if server provides current turn, reflect it in local view
+    if (externalCurrentTurn) setCurrentPlayer(externalCurrentTurn);
+  }, [externalCurrentTurn]);
+
   const commitResult = (result) => {
+    // do not store multiplayer results in local history
+    if (mode === 'multiplayer') return;
     if (result === 'draw') setHistory(prev => [...prev, { X: 'draw', O: 'draw' }]);
     else if (result === 'X') setHistory(prev => [...prev, { X: 'win', O: 'lose' }]);
     else if (result === 'O') setHistory(prev => [...prev, { X: 'lose', O: 'win' }]);
   }
 
   const handleMove = (row, col, fromAI=false) => {
-    if (board[row][col] || winner || draw) return;
-    // if multiplayer mode or local, only allow human X to click when appropriate
-    if (mode === 'ai' && !fromAI && currentPlayer === 'O') return; // block clicking during AI turn
+    // global guards
+    if (winner || draw) return;
+    if (disabled) return;
 
+    // multiplayer: do not mutate local board, instead send move to server
+    if (mode === 'multiplayer' && externalBoard) {
+      if (externalBoard[row][col]) return; // occupied
+      if (!mySymbol) return;
+      onLocalMove({ row, col, player: mySymbol });
+      return;
+    }
+
+    // AI mode: prevent human clicking during AI's turn
+    if (mode === 'ai' && !fromAI && currentPlayer === 'O') return;
+
+    if (board[row][col]) return;
     const nb = board.map(r => [...r]);
     nb[row][col] = currentPlayer;
     setBoard(nb);
 
     const w = checkWinner(nb);
-    if (w) { setWinner(w); commitResult(w); return; }
+    if (w) { setWinner(w); commitResult(w); onGameEnd({ result: w, board: nb }); return; }
     const d = checkDraw(nb);
-    if (d) { setDraw(true); commitResult('draw'); return; }
+    if (d) { setDraw(true); commitResult('draw'); onGameEnd({ result: 'draw', board: nb }); return; }
 
     setCurrentPlayer(prev => prev === 'X' ? 'O' : 'X');
   }
@@ -70,7 +101,7 @@ const GameBoard = ({ mode='local', storageKey='xenxo_score_history_v1' }) => {
         <div className='text-center w-full'>
           {winner ? <div className='text-2xl font-bold'>Player {winner} Wins!</div>
             : draw ? <div className='text-2xl font-bold'>It's a Draw!</div>
-            : <div className='text-lg'>Current: <strong>{currentPlayer}</strong></div>}
+            : <div className='text-lg'>Current: <strong>{externalCurrentTurn ?? currentPlayer}</strong></div>}
         </div>
 
         <div className='p-4 rounded-md bg-transparent'>
@@ -78,7 +109,7 @@ const GameBoard = ({ mode='local', storageKey='xenxo_score_history_v1' }) => {
             {board.map((rowArr, r) => (
               <div key={r} className='grid grid-cols-3 gap-3'>
                 {rowArr.map((cell, c) => (
-                  <Box key={c} text={cell} handleClick={() => handleMove(r,c,false)} />
+                  <Box key={c} text={cell} handleClick={() => handleMove(r,c,false)} disabled={disabled || winner || draw || (mode === 'ai' && currentPlayer === 'O')} />
                 ))}
               </div>
             ))}

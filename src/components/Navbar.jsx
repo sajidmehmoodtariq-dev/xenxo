@@ -5,9 +5,11 @@ import logo from "@/assets/logo.png"
 import userImage from "@/assets/user.png"
 import { ChevronFirst, ChevronLast } from 'lucide-react'
 import { useState } from 'react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 
 const Navbar = () => {
   const [sidebar, setSidebar] = useState(false)
+  const { data: session } = useSession()
 
   return (
     <nav
@@ -58,10 +60,28 @@ const Navbar = () => {
           sidebar ? "opacity-100" : "opacity-0"
         }`}
       >
-        <Image src={userImage} alt="User" className="w-10 h-10 rounded-md" />
-        <div className="flex flex-col leading-4">
-          <h4 className="font-semibold">John Doe</h4>
-          <span className="text-sm text-gray-500">john@gmail.com</span>
+        <div className="w-10 h-10 rounded-md overflow-hidden">
+          <Image src={session?.user?.image || userImage} alt="User" width={40} height={40} />
+        </div>
+        <div className="flex-1">
+          {session ? (
+            <div className="flex flex-col leading-4">
+              <h4 className="font-semibold">{session.user.name}</h4>
+              <span className="text-sm text-gray-500">{session.user.email}</span>
+            </div>
+          ) : (
+            <div className="flex flex-col leading-4">
+              <h4 className="font-semibold">Guest</h4>
+              <span className="text-sm text-gray-500">Not signed in</span>
+            </div>
+          )}
+        </div>
+        <div>
+          {session ? (
+            <button onClick={() => signOut()} className="px-3 py-1 bg-red-600 rounded text-sm">Logout</button>
+          ) : (
+            <button onClick={() => signIn()} className="px-3 py-1 bg-indigo-600 rounded text-sm">Login</button>
+          )}
         </div>
       </div>
     </nav>
