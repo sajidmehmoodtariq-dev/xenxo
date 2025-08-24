@@ -72,12 +72,18 @@ export default function Page() {
 
   const sendMove = async (move) => {
     if (!roomId) return
-    await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'move', move }) })
+    const resp = await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'move', move }) })
+    if (!resp.ok) {
+      const j = await resp.json().catch(()=>({ error: 'unknown' }))
+      console.error('move failed', j)
+      alert('Move failed: ' + (j.error || resp.statusText))
+    }
   }
 
   const endGame = async (winner) => {
     if (!roomId) return
-    await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'end', winner }) })
+  const resp = await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'end', winner }) })
+  if (!resp.ok) { const j = await resp.json().catch(()=>({ error: 'unknown' })); alert('End failed: ' + (j.error || resp.statusText)); return }
     setJoined(false)
     setRoomId('')
     setMySymbol('')
@@ -86,7 +92,8 @@ export default function Page() {
 
   const deleteRoom = async () => {
     if (!roomId) return
-    await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'delete' }) })
+  const resp = await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'delete' }) })
+  if (!resp.ok) { const j = await resp.json().catch(()=>({ error: 'unknown' })); alert('Delete failed: ' + (j.error || resp.statusText)); return }
     setJoined(false)
     setRoomId('')
     setMySymbol('')

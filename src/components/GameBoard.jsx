@@ -61,12 +61,14 @@ const GameBoard = ({ mode='local', storageKey='xenxo_score_history_v1', disabled
     // global guards
     if (winner || draw) return;
     if (disabled) return;
+  try { console.debug('GameBoard.handleMove', { mode, row, col, disabled, mySymbol, currentPlayer, externalBoard }); } catch(e){}
 
     // multiplayer: do not mutate local board, instead send move to server
     if (mode === 'multiplayer' && externalBoard) {
       if (externalBoard[row][col]) return; // occupied
       if (!mySymbol) return;
-      onLocalMove({ row, col, player: mySymbol });
+  try { console.debug('GameBoard -> sending onLocalMove', { row, col, player: mySymbol }) } catch(e){}
+  onLocalMove({ row, col, player: mySymbol });
       return;
     }
 
