@@ -146,8 +146,10 @@ export default async function handler(req, res) {
 
     if (action === 'delete') {
       // only creator can delete
-      const userId = token.email || token.sub || token.name
-      if (!room.creator || room.creator.id !== userId) return res.status(403).json({ error: 'only creator can delete' })
+  const userId = token.sub || token.email || token.name
+  const creator = room.creator || {}
+  const isCreator = creator.id === userId || (creator.email && creator.email === token.email) || (creator.name && creator.name === token.name)
+  if (!isCreator) return res.status(403).json({ error: 'only creator can delete' })
       await rooms.deleteOne({ roomId: id })
       return res.status(200).json({ ok: true })
     }

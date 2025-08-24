@@ -72,6 +72,13 @@ export default function Page() {
 
   const sendMove = async (move) => {
     if (!roomId) return
+    // client-side guard: ensure our view says it's our turn
+    if (!mySymbol) return alert('You are not assigned a symbol yet')
+    if (remoteState && remoteState.currentTurn && remoteState.currentTurn !== mySymbol) {
+      console.warn('Blocked sendMove: not our turn', { remoteCurrent: remoteState.currentTurn, mySymbol })
+      return alert("Not your turn")
+    }
+
     const resp = await fetch(`/api/rooms/${roomId}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'move', move }) })
     if (!resp.ok) {
       const j = await resp.json().catch(()=>({ error: 'unknown' }))
