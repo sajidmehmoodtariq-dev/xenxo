@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Score({ history = [] }) {
+export default function Score({ history = [], mode = 'local' }) {
     // Always display exactly 5 rows (most recent first). Fill empty rows with placeholders
     const rowsToShow = 5;
     const padded = [...history].slice(-rowsToShow).reverse(); // latest first
@@ -25,8 +25,8 @@ export default function Score({ history = [] }) {
                 <div className="flex-1">
                     <div className="grid grid-cols-3 gap-2 text-sm font-medium text-center mb-2">
                         <div className="text-left">Game</div>
-                        <div>X</div>
-                        <div>O</div>
+                        <div>{mode === 'ai' ? 'Player' : 'X'}</div>
+                        <div>{mode === 'ai' ? 'AI' : 'O'}</div>
                     </div>
 
                     <div className="space-y-2">
