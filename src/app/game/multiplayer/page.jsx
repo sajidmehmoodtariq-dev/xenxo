@@ -12,7 +12,7 @@ export default function Page() {
   const [remoteState, setRemoteState] = useState(null)
   const [mySymbol, setMySymbol] = useState('')
 
-  const userId = session?.user?.email || session?.user?.name || 'guest'
+  const userId = session?.user?.id || session?.user?.email || session?.user?.name || 'guest'
 
   const fetchRooms = async () => {
     const r = await fetch('/api/rooms')

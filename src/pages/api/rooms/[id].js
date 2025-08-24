@@ -48,7 +48,41 @@ export default async function handler(req, res) {
       }
 
       // fallback: if still not updated, reload room
-      const finalRoom = updated.value || await rooms.findOne({ roomId: id })
+      let finalRoom = updated.value || await rooms.findOne({ roomId: id })
+
+      // If room already has 2 players but one is a placeholder (guest or dev), try to atomically replace that placeholder with this authenticated user.
+      if (!updated.value && finalRoom && (finalRoom.players || []).length >= 2) {
+        const placeholders = ['guest', '', null]
+        const placeholderEntry = (finalRoom.players || []).find(p => {
+          if (!p) return true
+          const idLower = (p.id || '').toString().toLowerCase()
+          const nameLower = (p.name || '').toString().toLowerCase()
+          return placeholders.includes(idLower) || idLower.startsWith('guest') || idLower.startsWith('dev') || nameLower.includes('guest') || nameLower.includes('dev')
+        })
+
+        if (placeholderEntry) {
+          let claimed = null
+          // Prefer matching by id if present
+          if (placeholderEntry.id) {
+            claimed = await rooms.findOneAndUpdate(
+              { roomId: id, 'players.id': placeholderEntry.id },
+              { $set: { 'players.$.id': userId, 'players.$.name': userName } },
+              { returnDocument: 'after' }
+            )
+          }
+
+          // If no id or previous update didn't match, try matching by name
+          if (!claimed || !claimed.value) {
+            claimed = await rooms.findOneAndUpdate(
+              { roomId: id, 'players.name': placeholderEntry.name },
+              { $set: { 'players.$.id': userId, 'players.$.name': userName } },
+              { returnDocument: 'after' }
+            )
+          }
+
+          if (claimed && claimed.value) finalRoom = claimed.value
+        }
+      }
       return res.status(200).json({ ok: true, players: finalRoom.players })
     }
 
