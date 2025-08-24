@@ -1,12 +1,13 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signIn } from 'next-auth/react'
 import GameBoard from '@/components/GameBoard'
 
 export default function Page() {
   const { data: session } = useSession()
   const [rooms, setRooms] = useState([])
   const [roomId, setRoomId] = useState('')
+  const [roomName, setRoomName] = useState('')
   const [joined, setJoined] = useState(false)
   const [remoteState, setRemoteState] = useState(null)
   const [mySymbol, setMySymbol] = useState('')
@@ -22,8 +23,8 @@ export default function Page() {
   useEffect(()=>{ fetchRooms() }, [])
 
   const createRoom = async () => {
-    if (!session) return alert('Please sign in to create a room')
-    const res = await fetch('/api/rooms', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ name: 'Room' }) })
+  if (!session) return signIn()
+  const res = await fetch('/api/rooms', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ name: roomName || 'Room' }) })
     if (res.status !== 201) return alert('Could not create room')
     const j = await res.json()
     setRoomId(j.roomId)
@@ -32,7 +33,7 @@ export default function Page() {
   }
 
   const joinRoom = async (id) => {
-    if (!session) return alert('Please sign in to join a room')
+  if (!session) return signIn()
     setRoomId(id)
     // call join API
     const resp = await fetch(`/api/rooms/${id}`, { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ action: 'join' }) })
@@ -95,7 +96,10 @@ export default function Page() {
   if (!joined) return (
     <div className='p-6'>
       <h2 className='text-xl mb-4'>Lobby</h2>
-      <button onClick={createRoom} className='px-3 py-2 bg-indigo-600 text-white rounded'>Create Room</button>
+      <div className='flex gap-2 items-center'>
+        <input value={roomName} onChange={e=>setRoomName(e.target.value)} placeholder='Room name (optional)' className='border px-2 py-1' />
+        <button onClick={createRoom} className='px-3 py-2 bg-indigo-600 text-white rounded'>Create Room</button>
+      </div>
       <div className='mt-4'>
         {rooms.map(r => (
           <div key={r.roomId} className='flex items-center gap-2 my-2'>

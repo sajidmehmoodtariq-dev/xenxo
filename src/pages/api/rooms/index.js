@@ -20,7 +20,11 @@ export default async function handler(req, res) {
     await db.collection('rooms').insertOne(room)
     return res.status(201).json(room)
   }
-  // list
-  const rooms = await db.collection('rooms').find().sort({ createdAt: -1 }).limit(50).toArray()
-  res.status(200).json(rooms)
+  // list - require authentication to view lobby
+  if (req.method === 'GET') {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    if (!token) return res.status(401).json({ error: 'authentication required' })
+    const rooms = await db.collection('rooms').find().sort({ createdAt: -1 }).limit(50).toArray()
+    return res.status(200).json(rooms)
+  }
 }
