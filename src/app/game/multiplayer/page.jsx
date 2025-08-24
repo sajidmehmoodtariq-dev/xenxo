@@ -127,7 +127,7 @@ export default function Page() {
       <div className='mb-4'>Players: {remoteState?.players?.map(p=>`${p.name}(${p.symbol})`).join(', ') || '...'}</div>
       <div className='mb-4'>Current Turn: {remoteState?.currentTurn || '...'}</div>
       <GameBoard mode='multiplayer' externalBoard={remoteState?.board} externalCurrentTurn={remoteState?.currentTurn} disabled={!mySymbol || disabled} mySymbol={mySymbol} onLocalMove={sendMove} onGameEnd={({result,board})=>endGame(result)} />
-      {remoteState?.creator?.id === userId && (
+  {(remoteState?.creator?.id === userId || remoteState?.creator?.email === session?.user?.email || remoteState?.creator?.name === session?.user?.name) && (
         <div className='mt-4'>
           <button onClick={deleteRoom} className='px-3 py-2 bg-red-600 text-white rounded'>Delete Room</button>
         </div>

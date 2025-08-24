@@ -90,9 +90,31 @@ export default async function handler(req, res) {
     if (action === 'move') {
       // move: { row, col }
       const { row, col } = move || {}
-      const userId = token.email || token.sub || token.name
-      // find player's assigned symbol
-      const playerEntry = (room.players || []).find(p => p.id === userId)
+      const userId = token.sub || token.email || token.name
+      // find player's assigned symbol by canonical id first
+      let playerEntry = (room.players || []).find(p => p.id === userId)
+
+      // if not found, try matching by email or name (legacy entries). If found, claim it atomically.
+      if (!playerEntry) {
+        const possibleEmail = token.email
+        const possibleName = token.name
+        // try to find by email or name
+        const legacy = (room.players || []).find(p => (p.id && p.id === possibleEmail) || (p.email && p.email === possibleEmail) || (possibleName && p.name === possibleName))
+        if (legacy) {
+          try {
+            const filter = { roomId: id, 'players.name': legacy.name }
+            const set = { $set: { 'players.$.id': userId, 'players.$.name': possibleName || legacy.name, 'players.$.email': possibleEmail || legacy.email } }
+            const claimed = await rooms.findOneAndUpdate(filter, set, { returnDocument: 'after' })
+            if (claimed && claimed.value) {
+              playerEntry = (claimed.value.players || []).find(p => p.id === userId) || legacy
+            }
+          } catch (e) {
+            console.error('claim legacy player failed', e)
+            playerEntry = legacy
+          }
+        }
+      }
+
       if (!playerEntry) return res.status(403).json({ error: 'not part of this room' })
       const player = playerEntry.symbol
 
