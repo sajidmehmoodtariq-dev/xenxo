@@ -12,8 +12,9 @@ export default async function handler(req, res) {
 
     const { name } = req.body || {}
     const roomId = uuidv4().slice(0,8)
-    const creatorId = token.email || token.sub || token.name
-    const creatorName = token.name || 'Player'
+  // prefer token.sub (NextAuth user id) as canonical id, fallback to email or name
+  const creatorId = token.sub || token.email || token.name
+  const creatorName = token.name || token.email || 'Player'
     // creator is auto-added as first player (X)
     const creator = { id: creatorId, name: creatorName, symbol: 'X' }
     const room = { roomId, name: name || `Room ${roomId}`, board: [["","",""],["","",""],["","",""]], players: [creator], moves: [], currentTurn: 'X', creator, createdAt: new Date() }

@@ -23,8 +23,9 @@ export default async function handler(req, res) {
 
     if (action === 'join') {
       // use token identity as canonical user id
-      const userId = token.email || token.sub || token.name
-      const userName = token.name || 'Player'
+  // prefer token.sub (NextAuth user id) as canonical id, fallback to email or name
+  const userId = token.sub || token.email || token.name
+  const userName = token.name || token.email || 'Player'
 
       // if already present, return players
       if ((room.players || []).find(p => p.id === userId)) {
