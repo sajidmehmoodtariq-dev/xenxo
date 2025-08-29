@@ -15,10 +15,10 @@ export default function Score({ history = [], mode = 'local' }) {
     });
 
     return (
-    <div className="w-full md:w-96 lg:w-112 mx-auto bg-transparent p-6 rounded-xl shadow-none">
+    <div className="w-full md:w-96 lg:w-112 mx-auto p-6 rounded-xl xenxo-card">
             <div className="flex items-center justify-between mb-3">
                 <div className="text-2xl font-semibold">Score History</div>
-                <div className="text-sm text-gray-500">Last {rowsToShow}</div>
+                <div className="text-sm xenxo-muted">Last {rowsToShow}</div>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -31,8 +31,8 @@ export default function Score({ history = [], mode = 'local' }) {
 
                     <div className="space-y-2">
                         {padded.map((game, index) => (
-                            <div key={index} className="grid grid-cols-3 items-center gap-2 py-2 px-3 rounded-md bg-transparent hover:bg-white/5 hover:shadow-sm transition"> 
-                                <div className="text-left text-xs text-gray-600">{history.length - index > 0 ? `#${history.length - index}` : 'Empty'}</div>
+                            <div key={index} className="grid grid-cols-3 items-center gap-2 py-2 px-3 rounded-md bg-transparent hover:bg-gray-100 transition"> 
+                                <div className="text-left text-xs xenxo-muted">{history.length - index > 0 ? `#${history.length - index}` : 'Empty'}</div>
                                 <div className="font-semibold text-center">{game.X || '-'}</div>
                                 <div className="font-semibold text-center">{game.O || '-'}</div>
                             </div>
@@ -41,11 +41,11 @@ export default function Score({ history = [], mode = 'local' }) {
                 </div>
 
                 <div className="w-44 flex flex-col items-center justify-center gap-3">
-                    <div className="text-sm text-gray-600">Totals</div>
+                    <div className="text-sm xenxo-muted">Totals</div>
                     <div className="flex flex-col gap-2 mt-1 w-full">
-                        <div className="flex items-center justify-between px-3 py-2 bg-indigo-600 text-white rounded"> <span>X</span> <strong>{totals.X}</strong> </div>
-                        <div className="flex items-center justify-between px-3 py-2 bg-rose-600 text-white rounded"> <span>O</span> <strong>{totals.O}</strong> </div>
-                        <div className="flex items-center justify-between px-3 py-2 bg-gray-700 text-white rounded"> <span>Draws</span> <strong>{totals.draws}</strong> </div>
+                        <div className="flex items-center justify-between px-3 py-2 text-white rounded" style={{ background: 'linear-gradient(90deg,#4f46e5,#7c3aed)' }}> <span>X</span> <strong>{totals.X}</strong> </div>
+                        <div className="flex items-center justify-between px-3 py-2 text-white rounded" style={{ background: 'linear-gradient(90deg,#ef4444,#fb7185)' }}> <span>O</span> <strong>{totals.O}</strong> </div>
+                        <div className="flex items-center justify-between px-3 py-2 bg-gray-200 text-gray-800 rounded"> <span>Draws</span> <strong>{totals.draws}</strong> </div>
                     </div>
                 </div>
             </div>
