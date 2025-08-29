@@ -128,7 +128,10 @@ export default function Page() {
   const disabled = !!(remoteState && mySymbol && remoteState.currentTurn !== mySymbol)
 
   return (
-    <div className='p-6'>
+    <div className="min-h-screen w-screen flex items-center justify-center -ml-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white font-inter overflow-x-hidden relative">
+      {/* Gradient overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-teal-900/20 pointer-events-none"></div>
+      <div className='p-6'>
       <h2 className='text-xl mb-4'>Room: {roomId}</h2>
       <div className='mb-2'>You: {session?.user?.name || session?.user?.email} ({mySymbol || '...'})</div>
       <div className='mb-4'>Players: {remoteState?.players?.map(p=>`${p.name}(${p.symbol})`).join(', ') || '...'}</div>
@@ -139,6 +142,7 @@ export default function Page() {
           <button onClick={deleteRoom} className='px-3 py-2 bg-red-600 text-white rounded'>Delete Room</button>
         </div>
       )}
+    </div>
     </div>
   )
 }

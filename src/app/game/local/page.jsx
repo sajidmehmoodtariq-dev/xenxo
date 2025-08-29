@@ -77,8 +77,10 @@ const page = () => {
   }
 
   return (
-    <div className='min-h-screen flex flex-col lg:flex-row items-center justify-center gap-8 p-6'>
-      <div className='flex flex-col items-center justify-center w-full lg:w-2/3 gap-6'>
+    <div className="min-h-screen w-screen -ml-20 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white font-inter overflow-x-hidden relative">
+      {/* Gradient overlay for depth */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-teal-900/20 pointer-events-none"></div>
+      <div className='flex flex-col items-center justify-center w-full lg:w-1/2 gap-6'>
         {/* Game Status */}
         <div className='w-full max-w-3xl text-center'>
           {winner && (

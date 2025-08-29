@@ -12,7 +12,7 @@ const XenxoLanding = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white font-inter overflow-x-hidden relative">
+    <div className="min-h-screen w-screen -ml-20 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white font-inter overflow-x-hidden relative">
       {/* Gradient overlay for depth */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-teal-900/20 pointer-events-none"></div>
       {/* Animated background elements */}
@@ -47,13 +47,9 @@ const XenxoLanding = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               {/* Start Playing button with real link */}
-              <Link href="/game/ai" passHref legacyBehavior>
-                <a
-                  className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-teal-600 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" rel="noopener noreferrer"
-                >
-                  <span className="relative z-10">Start Playing</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-teal-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </a>
+              <Link href="/game/ai" className='bg-white/10 backdrop-blur-sm rounded-xl font-semibold text-white border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 px-8 py-4 flex items-center'>
+                <span className="relative z-10">Start Playing</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-teal-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
 
               <button className="px-8 py-4 bg-white/10 backdrop-blur-sm rounded-xl font-semibold text-white border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105">
@@ -211,21 +207,12 @@ const XenxoLanding = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {/* Play Now button with real link */}
-              <Link href="/game/local" passHref legacyBehavior>
-                <a
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-teal-600 rounded-xl font-semibold text-white hover:scale-105 transition-transform duration-300" rel="noopener noreferrer"
-                >
+              <Link href="/game/local" className='bg-white/10 backdrop-blur-sm rounded-xl font-semibold text-white border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 px-8 py-4 flex items-center'>
                   Play Now - It's Free
-                </a>
               </Link>
               {/* View on GitHub button with real link */}
-              <Link href="https://github.com/sajidmehmoodtariq-dev/xenxo" passHref legacyBehavior>
-                <a
-                  className="px-8 py-4 bg-white/10 backdrop-blur-sm rounded-xl font-semibold text-white border border-white/20 hover:bg-white/20 transition-all duration-300"
-                  target="_blank" rel="noopener noreferrer"
-                >
+              <Link href="https://github.com/sajidmehmoodtariq-dev/xenxo" className='bg-white/10 backdrop-blur-sm rounded-xl font-semibold text-white border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 px-8 py-4 flex items-center'>
                   View on GitHub
-                </a>
               </Link>
             </div>
           </div>
@@ -294,8 +281,8 @@ const InteractiveBoard = () => {
 const FeatureCard = ({ feature, index, isActive, onHover }) => (
   <div
     className={`group p-8 rounded-2xl border transition-all duration-300 cursor-pointer ${isActive
-        ? 'bg-gradient-to-br from-purple-600/20 to-teal-600/20 border-purple-500/50 scale-105'
-        : 'bg-slate-800/40 border-slate-700/50 hover:border-purple-500/30'
+      ? 'bg-gradient-to-br from-purple-600/20 to-teal-600/20 border-purple-500/50 scale-105'
+      : 'bg-slate-800/40 border-slate-700/50 hover:border-purple-500/30'
       }`}
     onMouseEnter={onHover}
   >
